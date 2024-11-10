@@ -10,7 +10,7 @@ import (
 
 const (
 	URL         = "https://www.upwork.com/nx/search/jobs/"
-	QueryPrompt = "please provide a query: \n"
+	QueryPrompt = "please provide a list of keywords: \n"
 )
 
 func ScanQuery(out io.Writer, in io.Reader) (string, error) {
@@ -27,10 +27,15 @@ func ScanQuery(out io.Writer, in io.Reader) (string, error) {
 	return query, nil
 }
 
+func MakeParams(keywords string) string {
+	array := strings.Fields(keywords)
+	return "?q=%28" + strings.Join(array, "%20OR%20") + "%29"
+}
+
 func main() {
-	query, err := ScanQuery(os.Stdout, os.Stdin)
+	keywords, err := ScanQuery(os.Stdout, os.Stdin)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("query: %q\n", query)
+	fmt.Printf("query: %q\n", keywords)
 }
