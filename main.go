@@ -1,21 +1,32 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-
-	"github.com/go-rod/rod"
+	"io"
+	"os"
+	"strings"
 )
 
-func main() {
-	browser := rod.New().MustConnect()
+const (
+	URL         = "https://www.upwork.com/nx/search/jobs/"
+	QueryPrompt = "please provide a query: \n"
+)
 
-	defer browser.MustClose()
+func ScanQuery(out io.Writer, in io.Reader) (string, error) {
+	fmt.Fprint(out, QueryPrompt)
+	reader := bufio.NewReader(in)
 
-	page := browser.MustPage("https://www.upwork.com/nx/search/jobs/?nbs=1&q=html").MustWaitStable()
-
-	list := page.MustElements(".job-tile")
-
-	for _, el := range list {
-		fmt.Printf("Title: %q, uid: %q\n", el.MustElement("h2").MustText(), *el.MustAttribute("data-ev-job-uid"))
+	query, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
 	}
+
+	query = strings.TrimSpace(query)
+	fmt.Printf("query: %q\n", query)
+	return query, nil
+}
+
+func main() {
+	ScanQuery(os.Stdout, os.Stdin)
 }
