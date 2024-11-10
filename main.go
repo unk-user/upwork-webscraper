@@ -23,10 +23,14 @@ func ScanQuery(out io.Writer, in io.Reader) (string, error) {
 	}
 
 	query = strings.TrimSpace(query)
-	fmt.Printf("query: %q\n", query)
+
 	return query, nil
 }
 
 func main() {
-	ScanQuery(os.Stdout, os.Stdin)
+	query, err := ScanQuery(os.Stdout, os.Stdin)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("query: %q\n", query)
 }
