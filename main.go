@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/go-rod/rod"
 )
 
 const (
@@ -33,9 +35,25 @@ func MakeParams(keywords string) string {
 }
 
 func main() {
-	keywords, err := ScanQuery(os.Stdout, os.Stdin)
-	if err != nil {
-		panic(err)
+	for {
+		browser := rod.New().MustConnect()
+		page := browser.MustPage("")
+
+		keywords, err := ScanQuery(os.Stdout, os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+		fullUrl := URL + MakeParams(keywords)
+		page.MustNavigate(fullUrl).MustWaitElementsMoreThan(".job-tile", 9)
+
+		jobTiles := page.MustElements(".job-tile")
+		for _, jobTile := range jobTiles {
+			title := jobTile.MustElement(".job-tile-title").MustText()
+			uid := *jobTile.MustAttribute("data-ev-job-uid")
+
+			fmt.Printf("%s: %s\n", uid, title)
+		}
+
+		browser.MustClose()
 	}
-	fmt.Printf("query: %q\n", keywords)
 }
