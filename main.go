@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	URL         = "https://www.upwork.com/nx/search/jobs/"
+	URL         = "https://www.upwork.com/nx/search/jobs/?category2_uid=531770282580668418&sort=recency"
 	QueryPrompt = "please provide a list of keywords: \n"
 )
 
@@ -31,7 +31,7 @@ func ScanQuery(out io.Writer, in io.Reader) (string, error) {
 
 func MakeParams(keywords string) string {
 	array := strings.Fields(keywords)
-	return "?q=%28" + strings.Join(array, "%20OR%20") + "%29"
+	return "&q=%28" + strings.Join(array, "%20OR%20") + "%29"
 }
 
 func main() {
@@ -47,11 +47,11 @@ func main() {
 		page.MustNavigate(fullUrl).MustWaitElementsMoreThan(".job-tile", 9)
 
 		jobTiles := page.MustElements(".job-tile")
-		for _, jobTile := range jobTiles {
+		for i, jobTile := range jobTiles {
 			title := jobTile.MustElement(".job-tile-title").MustText()
 			uid := *jobTile.MustAttribute("data-ev-job-uid")
 
-			fmt.Printf("%s: %s\n", uid, title)
+			fmt.Printf("%d - %s: %s\n", i, uid, title)
 		}
 
 		browser.MustClose()
