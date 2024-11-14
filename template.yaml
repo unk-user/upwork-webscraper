@@ -9,7 +9,7 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
-      MemorySize: 1200 # for just getting html, memory very infrequently goes above 1000
+      MemorySize: 400 # for just getting html, memory very infrequently goes above 1000
       Timeout: 30
       FunctionUrlConfig: # creates a function url
         AuthType: NONE

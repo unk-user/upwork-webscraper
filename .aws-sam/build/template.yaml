@@ -8,7 +8,7 @@ Resources:
       PackageType: Image
       Architectures:
       - x86_64
-      MemorySize: 1200
+      MemorySize: 400
       Timeout: 30
       FunctionUrlConfig:
         AuthType: NONE

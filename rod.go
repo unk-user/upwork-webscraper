@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	URL         = "https://www.upwork.com/nx/search/jobs/?category2_uid=531770282580668418&sort=recency"
+	URL         = "https://www.upwork.com/nx/search/jobs/?category2_uid=531770282580668418&sort=recency&per_page=20"
 	QueryPrompt = "please provide a list of keywords: \n"
 )
 
