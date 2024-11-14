@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"time"
 
@@ -18,26 +15,26 @@ const (
 	QueryPrompt = "please provide a list of keywords: \n"
 )
 
-func ScanQuery(out io.Writer, in io.Reader) (string, error) {
-	fmt.Fprint(out, QueryPrompt)
-	reader := bufio.NewReader(in)
+// func ScanQuery(out io.Writer, in io.Reader) (string, error) {
+// 	fmt.Fprint(out, QueryPrompt)
+// 	reader := bufio.NewReader(in)
 
-	query, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
+// 	query, err := reader.ReadString('\n')
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	query = strings.TrimSpace(query)
+// 	query = strings.TrimSpace(query)
 
-	return query, nil
-}
+// 	return query, nil
+// }
 
 func MakeParams(keywords string) string {
 	array := strings.Fields(keywords)
 	return "&q=%28" + strings.Join(array, "%20OR%20") + "%29"
 }
 
-func GetNewJobs() (err error) {
+func GetNewJobs(keyword string) (err error) {
 	const (
 		navigationTimeout  = 5 * time.Second
 		requestIdleTimeout = 10 * time.Second
@@ -71,11 +68,10 @@ func GetNewJobs() (err error) {
 
 		go router.Run()
 
-		keywords, err := ScanQuery(os.Stdout, os.Stdin)
 		if err != nil {
 			panic(err)
 		}
-		fullUrl := URL + MakeParams(keywords)
+		fullUrl := URL + MakeParams(keyword)
 		page.Timeout(navigationTimeout).MustNavigate(fullUrl).MustWaitElementsMoreThan(".job-tile", 9)
 
 		waitRequestIdle := page.Timeout(requestIdleTimeout).MustWaitRequestIdle()
@@ -99,6 +95,7 @@ func GetNewJobs() (err error) {
 
 func launchInLambda() *launcher.Launcher {
 	return launcher.New().
+		Bin("/opt/chromium").
 		Set("allow-running-insecure-content").
 		Set("autoplay-policy", "user-gesture-required").
 		Set("disable-component-update").
