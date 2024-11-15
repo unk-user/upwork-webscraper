@@ -1,2 +1,4 @@
 *.exe
 main_test.go
+README.md
+.aws-sam/
