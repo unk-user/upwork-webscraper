@@ -15,26 +15,12 @@ const (
 	QueryPrompt = "please provide a list of keywords: \n"
 )
 
-// func ScanQuery(out io.Writer, in io.Reader) (string, error) {
-// 	fmt.Fprint(out, QueryPrompt)
-// 	reader := bufio.NewReader(in)
-
-// 	query, err := reader.ReadString('\n')
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	query = strings.TrimSpace(query)
-
-// 	return query, nil
-// }
-
 func MakeParams(keywords string) string {
 	array := strings.Fields(keywords)
 	return "&q=%28" + strings.Join(array, "%20OR%20") + "%29"
 }
 
-func GetNewJobs(keyword string) (err error) {
+func GetNewJobs(keywords string) (err error) {
 	const (
 		navigationTimeout  = 5 * time.Second
 		requestIdleTimeout = 10 * time.Second
@@ -71,7 +57,7 @@ func GetNewJobs(keyword string) (err error) {
 		if err != nil {
 			panic(err)
 		}
-		fullUrl := URL + MakeParams(keyword)
+		fullUrl := URL + MakeParams(keywords)
 		page.Timeout(navigationTimeout).MustNavigate(fullUrl).MustWaitElementsMoreThan(".job-tile", 9)
 
 		waitRequestIdle := page.Timeout(requestIdleTimeout).MustWaitRequestIdle()
@@ -86,11 +72,7 @@ func GetNewJobs(keyword string) (err error) {
 		}
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func launchInLambda() *launcher.Launcher {
