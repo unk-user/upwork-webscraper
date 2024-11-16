@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ func MakeParams(keywords string) string {
 	return "&q=%28" + strings.Join(array, "%20OR%20") + "%29"
 }
 
-func GetNewJobs(keywords string) (err error) {
+func GetNewJobs(keywords string, launcher *launcher.Launcher) (JobMap map[string]string, err error) {
 	const (
 		navigationTimeout  = 5 * time.Second
 		requestIdleTimeout = 10 * time.Second
@@ -28,8 +27,6 @@ func GetNewJobs(keywords string) (err error) {
 	)
 
 	err = rod.Try(func() {
-		launcher := launchInLambda()
-
 		defer launcher.Cleanup()
 
 		defer launcher.Kill()
@@ -64,41 +61,13 @@ func GetNewJobs(keywords string) (err error) {
 		waitRequestIdle()
 
 		jobTiles := page.Timeout(htmlTimeout).MustElements(".job-tile")
-		for i, jobTile := range jobTiles {
+		for _, jobTile := range jobTiles {
 			title := jobTile.MustElement(".job-tile-title").MustText()
 			uid := *jobTile.MustAttribute("data-ev-job-uid")
 
-			fmt.Printf("%d - %s: %s\n", i, uid, title)
+			JobMap[uid] = title
 		}
 	})
 
-	return err
-}
-
-func launchInLambda() *launcher.Launcher {
-	return launcher.New().
-		Bin("/opt/chromium").
-		Set("allow-running-insecure-content").
-		Set("autoplay-policy", "user-gesture-required").
-		Set("disable-component-update").
-		Set("disable-domain-reliability").
-		Set("disable-features", "AudioServiceOutOfProcess", "IsolateOrigins", "site-per-process").
-		Set("disable-print-preview").
-		Set("disable-setuid-sandbox").
-		Set("disable-site-isolation-trials").
-		Set("disable-speech-api").
-		Set("disable-web-security").
-		Set("disk-cache-size", "33554432").
-		Set("enable-features", "SharedArrayBuffer").
-		Set("hide-scrollbars").
-		Set("ignore-gpu-blocklist").
-		Set("in-process-gpu").
-		Set("mute-audio").
-		Set("no-default-browser-check").
-		Set("no-pings").
-		Set("no-sandbox").
-		Set("no-zygote").
-		Set("single-process").
-		Set("use-gl", "swiftshader").
-		Set("window-size", "1920", "1080")
+	return JobMap, err
 }
