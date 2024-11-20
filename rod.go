@@ -25,8 +25,11 @@ func MakeParams(p Payload) string {
 }
 
 type Job struct {
-	UID   string
-	Title string
+	UID             string
+	Title           string
+	Description     string
+	JobType         string
+	ExperienceLevel string
 }
 
 func GetNewJobs(p Payload) (jobs []Job, err error) {
@@ -75,8 +78,19 @@ func GetNewJobs(p Payload) (jobs []Job, err error) {
 		for _, jobTile := range jobTiles {
 			uid := *jobTile.MustAttribute("data-ev-job-uid")
 			title := jobTile.MustElement(".job-tile-title").MustText()
+			description := jobTile.MustElement(".text-body-sm").MustText()
+			jobType := jobTile.MustElement("[data-test=job-type-label]").MustText()
+			experienceLevel := jobTile.MustElement("[data-test=experience-level]").MustText()
 
-			jobs = append(jobs, Job{UID: uid, Title: title})
+			job := Job{
+				UID:             uid,
+				Title:           title,
+				Description:     description,
+				JobType:         jobType,
+				ExperienceLevel: experienceLevel,
+			}
+
+			jobs = append(jobs, job)
 		}
 	})
 
