@@ -1,11 +1,12 @@
 FROM golang:1.23 AS build
+WORKDIR /helloworld
 
-WORKDIR /usr/app/
+COPY go.mod go.sum ./
 
-COPY go.mod ./
-RUN go mod download && go mod verify
+COPY . ./
+RUN go build -tags lambda.norpc -o main main.go
 
-COPY . .
-RUN go build -o ./main
+FROM public.ecr.aws/lambda/provided:al2023
+COPY --from=build /helloworld/main ./main
 
-CMD [ "./main" ]
+ENTRYPOINT [ "./main" ]
