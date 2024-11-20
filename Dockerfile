@@ -1,18 +1,23 @@
-FROM golang:1.23 AS build
+FROM golang:1.23-alpine AS build
 WORKDIR /app
+
+RUN apk add --no-cache bash
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY *.go ./
-RUN env GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -o main
+RUN env GOOS=linux GOARCH=amd64 go build -tags lambda.norpc -ldflags="-s -w" -o main
 
-FROM amazonlinux:2023 AS chromium
+FROM alpine:3.18 AS chromium
+WORKDIR /tmp
 
-RUN yum -y install wget brotli && \
-    wget --progress=dot:giga https://raw.githubusercontent.com/alixaxel/chrome-aws-lambda/master/bin/chromium.br -O /chromium.br && \
-    brotli -d /chromium.br && \
-    yum clean all
+# Install brotli for decompressing Chromium
+RUN apk add --no-cache wget brotli && \
+    wget --progress=dot:giga https://raw.githubusercontent.com/alixaxel/chrome-aws-lambda/master/bin/chromium.br -O chromium.br && \
+    brotli -d chromium.br && \
+    chmod 755 chromium && \
+    mv chromium /opt/
 
 FROM public.ecr.aws/lambda/provided:al2023
 
@@ -26,7 +31,7 @@ RUN dnf -y install \
     nss && \
     dnf clean all
 
-COPY --from=chromium /chromium /opt/chromium
+COPY --from=chromium /opt/chromium /opt/chromium
 
 RUN chmod 777 /opt/chromium
 
