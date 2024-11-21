@@ -25,11 +25,11 @@ func MakeParams(p Payload) string {
 }
 
 type Job struct {
-	UID             string
-	Title           string
-	Description     string
-	JobType         string
-	ExperienceLevel string
+	UID             string `json:"uid"`
+	Title           string `json:"title"`
+	Description     string `json:"description"`
+	JobType         string `json:"jobType"`
+	ExperienceLevel string `json:"experienceLevel"`
 }
 
 func GetNewJobs(p Payload) (jobs []Job, err error) {
