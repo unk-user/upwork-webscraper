@@ -1,2 +1,2 @@
 ## upword webscraper
-initial implementation with github actions
+v0.2.0 is about getting all the data needed in structure.

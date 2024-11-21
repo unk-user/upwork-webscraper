@@ -15,14 +15,13 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	}
 
 	jobs, err := GetNewJobs(payload)
-
 	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
 	body, err := json.Marshal(jobs)
 	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return events.APIGatewayProxyResponse{StatusCode: 500}, err
 	}
 
 	response := events.APIGatewayProxyResponse{
