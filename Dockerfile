@@ -25,7 +25,6 @@ RUN dnf -y install \
     libX11 \
     nano \
     unzip \
-    wget \
     xorg-x11-xauth \
     xterm \
     nss && \
