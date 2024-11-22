@@ -1,2 +1,2 @@
 ## upword webscraper
-v0.2.0 is about getting all the data needed in structure.
+v0.3.0 is about optimised html parsing, response handling and filtering.
