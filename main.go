@@ -52,7 +52,10 @@ func main() {
 }
 
 func sendJobs(jobs []Job) error {
-	const apiEndpoint = "http://192.168.91.87:3000"
+	apiEndpoint := os.Getenv("API_ENDPOINT")
+	if apiEndpoint == "" {
+		return nil
+	}
 
 	data, err := json.Marshal(jobs)
 	if err != nil {
