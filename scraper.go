@@ -88,12 +88,15 @@ func GetHTML(url string) (html string, err error) {
 }
 
 type Job struct {
-	UID             string `json:"uid"`
-	Title           string `json:"title"`
-	Description     string `json:"description"`
-	JobType         string `json:"jobType"`
-	ExperienceLevel string `json:"experienceLevel"`
-	PublishedAt     string `json:"publishedAt"`
+	UID             string   `json:"uid"`
+	Title           string   `json:"title"`
+	Description     string   `json:"description"`
+	JobType         string   `json:"jobType"`
+	ExperienceLevel string   `json:"experienceLevel"`
+	PublishedAt     string   `json:"publishedAt"`
+	FixedPrice      string   `json:"fixedPrice"`
+	Duration        string   `json:"duration"`
+	Skills          []string `json:"skills"`
 }
 
 func ProcessHTML(html string) (jobs []Job, err error) {
@@ -127,6 +130,15 @@ func ProcessHTML(html string) (jobs []Job, err error) {
 		detailsInfo := s.Find("ul.job-tile-info-list")
 		jobType := detailsInfo.Find("[data-test='job-type-label']").Text()
 		experienceLevel := detailsInfo.Find("[data-test='experience-level']").Text()
+		duration := detailsInfo.Find("[data-test='duration-label']").Text()
+		fixedPrice := detailsInfo.Find("[data-test='is-fixed-price']").Text()
+		skills := make([]string, 0)
+
+		skillsContainer := s.Find("div.air3-token-container")
+		skillsContainer.Find("span").Each(func(i int, s *goquery.Selection) {
+			skill := s.Text()
+			skills = append(skills, skill)
+		})
 
 		jobs = append(jobs, Job{
 			UID:             uid,
@@ -135,6 +147,9 @@ func ProcessHTML(html string) (jobs []Job, err error) {
 			JobType:         jobType,
 			ExperienceLevel: experienceLevel,
 			PublishedAt:     publishedAt,
+			Duration:        duration,
+			FixedPrice:      fixedPrice,
+			Skills:          skills,
 		})
 	})
 
