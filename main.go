@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"log"
+	"net/http"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -12,9 +17,8 @@ import (
 const baseUrl = "https://www.upwork.com/nx/search/jobs/"
 
 type Response struct {
-	StatusCode int   `json:"statusCode"`
-	Length     int   `json:"length"`
-	Jobs       []Job `json:"jobs"`
+	StatusCode int `json:"statusCode"`
+	Length     int `json:"length"`
 }
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response, error) {
@@ -33,10 +37,48 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response
 		return Response{}, err
 	}
 
+	err = sendJobs(jobs)
+	if err != nil {
+		log.Println(err)
+		return Response{}, err
+	}
+
 	log.Println("Done")
-	return Response{StatusCode: 200, Jobs: jobs, Length: len(jobs)}, nil
+	return Response{StatusCode: 200, Length: len(jobs)}, nil
 }
 
 func main() {
 	lambda.Start(handler)
+}
+
+func sendJobs(jobs []Job) error {
+	const apiEndpoint = "http://192.168.91.87:3000"
+
+	data, err := json.Marshal(jobs)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-Secret-Key", os.Getenv("BOT_SECRET"))
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	log.Println(string(body))
+	return nil
 }
