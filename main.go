@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -27,23 +26,23 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response
 
 	html, err := GetHTML(baseUrl + "?category2_uid=" + categoryId + "&per_page=20" + "&q=%28" + strings.Join(keywords, "%20OR%20") + "%29")
 	if err != nil {
-		log.Println(err)
+		log.Println("Error getting HTML", err.Error())
 		return Response{}, err
 	}
 
 	jobs, err := ProcessHTML(html)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error parsing HTML", err.Error())
 		return Response{}, err
 	}
 
 	err = sendJobs(jobs)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error sending jobs", err.Error())
 		return Response{}, err
 	}
 
-	log.Println("Done")
+	log.Println("Scraping job finished successfully")
 	return Response{StatusCode: 200, Length: len(jobs)}, nil
 }
 
@@ -52,9 +51,9 @@ func main() {
 }
 
 func sendJobs(jobs []Job) error {
-	apiEndpoint := os.Getenv("API_ENDPOINT")
-	if apiEndpoint == "" {
-		return nil
+	apiEndpoint, ok := os.LookupEnv("API_ENDPOINT")
+	if !ok {
+		apiEndpoint = "http://172.25.80.1:3000/v1/lambda/webhook"
 	}
 
 	data, err := json.Marshal(jobs)
@@ -63,25 +62,17 @@ func sendJobs(jobs []Job) error {
 	}
 
 	client := &http.Client{}
-	req, err := http.NewRequest("POST", apiEndpoint, bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPost, apiEndpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Secret-Key", os.Getenv("BOT_SECRET"))
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	log.Println(string(body))
 	return nil
 }
