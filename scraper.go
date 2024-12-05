@@ -118,6 +118,10 @@ func ProcessHTML(html string) (jobs []Job, err error) {
 
 		publishedAt := s.Find("[data-test=job-pubilshed-date]").Text()
 		entries := strings.Fields(publishedAt)
+		if len(entries) < 3 {
+			return
+		}
+
 		num, time := entries[1], entries[2]
 		intNum, _ := strconv.Atoi(num)
 		if time != "minutes" || intNum > 30 {
