@@ -35,4 +35,5 @@ COPY --from=chromium /opt/chromium /opt/chromium
 RUN chmod 777 /opt/chromium
 
 COPY --from=build /app/main ./main
+ENV ENVIRONMENT="lambda"
 ENTRYPOINT [ "./main" ]

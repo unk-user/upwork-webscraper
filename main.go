@@ -52,6 +52,10 @@ func main() {
 
 func sendJobs(jobs []Job) error {
 	apiEndpoint, ok := os.LookupEnv("API_ENDPOINT")
+	environment := os.Getenv("ENVIRONMENT")
+	if !ok && environment == "lambda" {
+		return nil
+	}
 	if !ok {
 		apiEndpoint = "http://172.25.80.1:3000/v1/lambda/webhook"
 	}
