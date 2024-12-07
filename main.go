@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -23,6 +22,7 @@ type Response struct {
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response, error) {
 	keywords := strings.Fields(event.QueryStringParameters["keywords"]) // Use strings.Fields to split the keywords into an array
 	categoryId := event.QueryStringParameters["categoryId"]
+	apiEndpoint := event.QueryStringParameters["apiEndpoint"]
 
 	html, err := GetHTML(baseUrl + "?category2_uid=" + categoryId + "&per_page=20" + "&q=%28" + strings.Join(keywords, "%20OR%20") + "%29")
 	if err != nil {
@@ -36,7 +36,7 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response
 		return Response{}, err
 	}
 
-	err = sendJobs(jobs)
+	err = sendJobs(jobs, apiEndpoint)
 	if err != nil {
 		log.Println("Error sending jobs", err.Error())
 		return Response{}, err
@@ -50,16 +50,7 @@ func main() {
 	lambda.Start(handler)
 }
 
-func sendJobs(jobs []Job) error {
-	apiEndpoint, ok := os.LookupEnv("API_ENDPOINT")
-	environment := os.Getenv("ENVIRONMENT")
-	if !ok && environment == "lambda" {
-		return nil
-	}
-	if !ok {
-		apiEndpoint = "http://172.25.80.1:3000/v1/lambda/webhook"
-	}
-
+func sendJobs(jobs []Job, apiEndpoint string) error {
 	data, err := json.Marshal(jobs)
 	if err != nil {
 		return err
