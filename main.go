@@ -51,6 +51,11 @@ func main() {
 }
 
 func sendJobs(jobs []Job, apiEndpoint string) error {
+	if apiEndpoint == "" {
+		log.Println("API endpoint not specified")
+		return nil
+	}
+
 	data, err := json.Marshal(jobs)
 	if err != nil {
 		return err
